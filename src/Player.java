@@ -26,11 +26,18 @@ class Player {
 
     private static String decideAction() {
         // MOVE <pacId> <x> <y>
-        String action = moveRandomly();
-//        String action = moveToAdjacentPellet();
-//        if (action == null) {
-//            action = moveRandomly();
-//        }
+        String action = null;
+        if (map.up(x, y).isPelet()) {
+            action = moveTo(map.up(x, y));
+        } else if (map.down(x, y).isPelet()) {
+            action = moveTo(map.down(x, y));
+        } else if (map.right(x, y).isPelet()) {
+            action = moveTo(map.right(x, y));
+        } else if (map.left(x, y).isPelet()) {
+            action = moveTo(map.left(x, y));
+        } else {
+            action = moveRandomly();
+        }
         return action;
     }
 
