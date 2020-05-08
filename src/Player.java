@@ -27,6 +27,10 @@ class Player {
     private static String decideAction() {
         // MOVE <pacId> <x> <y>
         String action = null;
+        debug("U-" + map.up(x, y).getPeletValue());
+        debug("D-" + map.down(x, y).getPeletValue());
+        debug("L-" + map.left(x, y).getPeletValue());
+        debug("R-" + map.right(x, y).getPeletValue());
         if (map.up(x, y).isPelet()) {
             debug("move pelet up");
             action = moveTo(map.up(x, y));
@@ -204,12 +208,9 @@ class Map {
     }
 
     Cell right(int x, int y) {
-        System.err.println("going right from " + x + "." + y + " width." + width);
         if (x < width - 1) {
-            System.err.println("no cross");
             return this.cells[x + 1][y];
         } else {
-            System.err.println("cross");
             return this.cells[0][y];
         }
     }
@@ -278,10 +279,14 @@ class Cell {
     }
 
     public boolean isPelet() {
-        return peletValue > 1;
+        return peletValue > 0;
     }
 
     public boolean isVisitable() {
         return space == FREE;
+    }
+
+    public int getPeletValue() {
+        return peletValue;
     }
 }
