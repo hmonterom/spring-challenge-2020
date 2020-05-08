@@ -28,14 +28,19 @@ class Player {
         // MOVE <pacId> <x> <y>
         String action = null;
         if (map.up(x, y).isPelet()) {
+            debug("move pelet up");
             action = moveTo(map.up(x, y));
         } else if (map.down(x, y).isPelet()) {
+            debug("move pelet down");
             action = moveTo(map.down(x, y));
         } else if (map.right(x, y).isPelet()) {
+            debug("move pelet right");
             action = moveTo(map.right(x, y));
         } else if (map.left(x, y).isPelet()) {
+            debug("move pelet left");
             action = moveTo(map.left(x, y));
         } else {
+            debug("move randomly");
             action = moveRandomly();
         }
         return action;
@@ -66,10 +71,12 @@ class Player {
             boolean mine = in.nextInt() != 0; // true if this pac is yours
             int newX = in.nextInt(); // position in the grid
             int newY = in.nextInt(); // position in the grid
-            x = newX;
-            debug("x:" + x);
-            y = newY;
-            debug("y:" + y);
+            if (mine) {
+                x = newX;
+                debug("x:" + x);
+                y = newY;
+                debug("y:" + y);
+            }
             String typeId = in.next(); // unused in wood leagues
             int speedTurnsLeft = in.nextInt(); // unused in wood leagues
             int abilityCooldown = in.nextInt(); // unused in wood leagues
@@ -191,18 +198,22 @@ class Map {
     public List<Cell> getVisitableCells(int x, int y) {
         List<Cell> result = new ArrayList<>();
         Cell up = up(x, y);
+        System.err.println("up." + up);
         if (up.isVisitable()) {
             result.add(up);
         }
         Cell left = left(x, y);
+        System.err.println("left." + left);
         if (left.isVisitable()) {
             result.add(left);
         }
         Cell down = down(x, y);
+        System.err.println("down." + down);
         if (down.isVisitable()) {
             result.add(down);
         }
         Cell right = right(x, y);
+        System.err.println("right." + right);
         if (right.isVisitable()) {
             result.add(right);
         }
