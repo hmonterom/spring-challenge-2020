@@ -180,19 +180,38 @@ class Map {
     }
 
     Cell up(int x, int y) {
-        return this.cells[x][y - 1];
+        if (y > 0) {
+            return this.cells[x][y - 1];
+        } else {
+            return this.cells[x][height - 1];
+        }
     }
 
     Cell down(int x, int y) {
-        return this.cells[x][y + 1];
+        if (y < height - 1) {
+            return this.cells[x][y + 1];
+        } else {
+            return this.cells[x][0];
+        }
     }
 
     Cell left(int x, int y) {
-        return this.cells[x - 1][y];
+        if (x > 0) {
+            return this.cells[x - 1][y];
+        } else {
+            return this.cells[width - 1][y];
+        }
     }
 
     Cell right(int x, int y) {
-        return this.cells[x + 1][y];
+        System.err.println("going right from " + x + "." + y + " width." + width);
+        if (x < width - 1) {
+            System.err.println("no cross");
+            return this.cells[x + 1][y];
+        } else {
+            System.err.println("cross");
+            return this.cells[0][y];
+        }
     }
 
     public List<Cell> getVisitableCells(int x, int y) {
