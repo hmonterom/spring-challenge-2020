@@ -148,20 +148,28 @@ class Map {
         return rowStream.flatMap(cells -> Arrays.stream(cells));
     }
 
+    public void addPelet(int x, int y, int value) {
+        cells[x][y].addPelet(value);
+    }
+
+    Cell getCell(int x, int y) {
+        return cells[x][y];
+    }
+
     Cell up(Cell actual) {
-        return this.cells[actual.x][actual.y - 1];
+        return up(actual.x, actual.y);
     }
 
     Cell down(Cell actual) {
-        return this.cells[actual.x][actual.y + 1];
+        return down(actual.x, actual.y);
     }
 
     Cell left(Cell actual) {
-        return this.cells[actual.x - 1][actual.y];
+        return left(actual.x, actual.y);
     }
 
     Cell right(Cell actual) {
-        return this.cells[actual.x][actual.y - 1];
+        return right(actual.x, actual.y);
     }
 
     Cell up(int x, int y) {
@@ -177,7 +185,7 @@ class Map {
     }
 
     Cell right(int x, int y) {
-        return this.cells[x][y - 1];
+        return this.cells[x + 1][y];
     }
 
     public List<Cell> getVisitableCells(int x, int y) {
@@ -191,7 +199,7 @@ class Map {
             result.add(left);
         }
         Cell down = down(x, y);
-        if (up.isVisitable()) {
+        if (down.isVisitable()) {
             result.add(down);
         }
         Cell right = right(x, y);
@@ -211,10 +219,6 @@ class Map {
             stringBuilder.append('\n');
         }
         return stringBuilder.toString();
-    }
-
-    public void addPelet(int x, int y, int value) {
-        cells[x][y].addPelet(value);
     }
 }
 
