@@ -5,8 +5,7 @@ import java.util.stream.Stream;
  * Grab the pellets as fast as you can!
  **/
 class Player {
-    private static Map map;
-    private static Map pelletsMap;
+    private static GameMap map;
     private static int x, y;
 
     public static void main(String[] args) {
@@ -17,36 +16,19 @@ class Player {
         while (true) {
             readTurnInput(in);
 
-            String action = decideAction();
+            Cell here = map.getCell(x, y);
+            String action = decideAction(here);
             executeAction(action);
 
         }
     }
 
 
-    private static String decideAction() {
+    private static String decideAction(Cell here) {
         // MOVE <pacId> <x> <y>
         String action = null;
-        debug("U-" + map.up(x, y).getPeletValue());
-        debug("D-" + map.down(x, y).getPeletValue());
-        debug("L-" + map.left(x, y).getPeletValue());
-        debug("R-" + map.right(x, y).getPeletValue());
-        if (map.up(x, y).isPelet()) {
-            debug("move pelet up");
-            action = moveTo(map.up(x, y));
-        } else if (map.down(x, y).isPelet()) {
-            debug("move pelet down");
-            action = moveTo(map.down(x, y));
-        } else if (map.right(x, y).isPelet()) {
-            debug("move pelet right");
-            action = moveTo(map.right(x, y));
-        } else if (map.left(x, y).isPelet()) {
-            debug("move pelet left");
-            action = moveTo(map.left(x, y));
-        } else {
-            debug("move randomly");
-            action = moveRandomly();
-        }
+        Cell nearestPellet = map.findNearestPellet(here);
+        action = moveTo(nearestPellet);
         return action;
     }
 
@@ -95,7 +77,7 @@ class Player {
         }
     }
 
-    private static Map readFirstTurnInput(Scanner in) {
+    private static GameMap readFirstTurnInput(Scanner in) {
         int width = in.nextInt(); // size of the grid
         int height = in.nextInt(); // top left corner is (x=0, y=0)
         List<String> rows = new ArrayList<>();
@@ -106,7 +88,7 @@ class Player {
             String row = in.nextLine(); // one line of the grid: space " " is floor, pound "#" is wall
             rows.add(row);
         }
-        return new Map(width, height, rows);
+        return new GameMap(width, height, rows);
     }
 
     private static void executeAction(String action) {
@@ -121,16 +103,17 @@ class Player {
 
 }
 
-class Map {
-    int width, height;
+class GameMap {
+    final int width;
+    final int height;
     Cell[][] cells;
 
-    public Map(int width, int height, List<String> rows) {
+    public GameMap(int width, int height, List<String> rows) {
         this(width, height);
         this.cells = createGridFromStringList(rows);
     }
 
-    public Map(int width, int height) {
+    public GameMap(int width, int height) {
         this.width = width;
         this.height = height;
     }
@@ -218,22 +201,18 @@ class Map {
     public List<Cell> getVisitableCells(int x, int y) {
         List<Cell> result = new ArrayList<>();
         Cell up = up(x, y);
-        System.err.println("up." + up);
         if (up.isVisitable()) {
             result.add(up);
         }
         Cell left = left(x, y);
-        System.err.println("left." + left);
         if (left.isVisitable()) {
             result.add(left);
         }
         Cell down = down(x, y);
-        System.err.println("down." + down);
         if (down.isVisitable()) {
             result.add(down);
         }
         Cell right = right(x, y);
-        System.err.println("right." + right);
         if (right.isVisitable()) {
             result.add(right);
         }
@@ -250,6 +229,15 @@ class Map {
             stringBuilder.append('\n');
         }
         return stringBuilder.toString();
+    }
+
+    public Cell findNearestPellet(Cell here) {
+        PathFinder pathFinder = new PathFinder(this);
+        return pathFinder.findNearestPellet(here);
+    }
+
+    public List<Cell> getVisitableCells(Cell current) {
+        return getVisitableCells(current.x, current.y);
     }
 }
 
@@ -286,7 +274,85 @@ class Cell {
         return space == FREE;
     }
 
-    public int getPeletValue() {
-        return peletValue;
+}
+
+
+class PathFinder {
+    private static final int MAX_DISTANCE = 9999;
+    final GameMap map;
+    final Map<Cell, Integer> visited = new HashMap<>();
+    int nearestPelletDistance;
+
+    public PathFinder(GameMap map) {
+        this.map = map;
+    }
+
+    private QueueNode findNearestPellet(Cell here, int distance) {
+        System.err.println("nearestPelletDistance." + nearestPelletDistance);
+        if (distance >= nearestPelletDistance) {
+            return null;
+        }
+        if (visited.containsKey(here)) {
+            Integer previousDistance = visited.get(here);
+            if (distance >= previousDistance) {
+                return null;
+            }
+        }
+        visited.put(here, distance);
+        System.err.println("here is " + here.x + "." + here.y);
+        System.err.println("distance." + distance);
+        if (here.isPelet()) {
+            nearestPelletDistance = distance;
+            System.err.println("here is pelet at " + distance);
+            return new QueueNode(here, distance);
+        }
+
+        List<Cell> visitableCells = map.getVisitableCells(here);
+        List<QueueNode> nearestCells = new LinkedList<>();
+        for (Cell cell : visitableCells) {
+            QueueNode nearestPellet = findNearestPellet(cell, distance + 1);
+            if (nearestPellet != null) {
+                nearestCells.add(nearestPellet);
+            }
+        }
+
+        QueueNode result = null;
+
+        for (QueueNode node : nearestCells) {
+            if (node != null) {
+                if (result == null) {
+                    result = node;
+                } else {
+                    if (node.distance < result.distance) {
+                        nearestPelletDistance = node.distance;
+                        result = node;
+                    }
+                }
+            }
+        }
+
+        if (result != null) {
+            System.err.println("pelet at " + result.distance + " returned");
+        }
+        return result;
+    }
+
+    public Cell findNearestPellet(Cell cell) {
+        nearestPelletDistance = MAX_DISTANCE;
+        QueueNode nearestNode = findNearestPellet(cell, 0);
+        if (nearestNode == null) {
+            return null;
+        }
+        return nearestNode.cell;
+    }
+}
+
+class QueueNode {
+    final Cell cell;
+    final int distance;
+
+    public QueueNode(Cell cell, int distance) {
+        this.cell = cell;
+        this.distance = distance;
     }
 }
